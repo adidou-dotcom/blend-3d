@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
 
@@ -47,7 +48,7 @@ const AdminDishDetail = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState<Database["public"]["Enums"]["dish_order_status"]>("NEW");
   const [deliveryUrl, setDeliveryUrl] = useState("");
   const [deliveryNote, setDeliveryNote] = useState("");
 
@@ -74,7 +75,7 @@ const AdminDishDetail = () => {
 
       if (dishError) throw dishError;
       setDish(dishData as any);
-      setStatus(dishData.status as string);
+      setStatus(dishData.status as Database["public"]["Enums"]["dish_order_status"]);
       setDeliveryUrl(dishData.delivery_url || "");
       setDeliveryNote(dishData.delivery_note || "");
 
@@ -272,7 +273,7 @@ const AdminDishDetail = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <Select value={status} onValueChange={(value) => setStatus(value)}>
+                  <Select value={status} onValueChange={(value) => setStatus(value as Database["public"]["Enums"]["dish_order_status"])}>
                     <SelectTrigger id="status">
                       <SelectValue />
                     </SelectTrigger>
