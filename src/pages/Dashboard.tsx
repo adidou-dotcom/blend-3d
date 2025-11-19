@@ -21,18 +21,35 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [dishes, setDishes] = useState<DishOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>("All");
+  const [restaurantName, setRestaurantName] = useState("");
 
   useEffect(() => {
     if (user) {
       loadDishes();
+      loadRestaurantName();
     }
   }, [user]);
+
+  const loadRestaurantName = async () => {
+    try {
+      const { data } = await supabase
+        .from("restaurant_profiles")
+        .select("restaurant_name")
+        .eq("user_id", user?.id)
+        .single();
+      
+      if (data) setRestaurantName(data.restaurant_name);
+    } catch (error) {
+      console.error("Error loading restaurant name:", error);
+    }
+  };
 
   const loadDishes = async () => {
     try {
       const { data, error } = await supabase
         .from("dish_orders")
-        .select("id, dish_name, internal_reference, status, created_at")
+        .select("id, dish_name, internal_reference, status, created_at, price_charged, currency")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
@@ -43,6 +60,17 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filteredDishes = filter === "All" 
+    ? dishes 
+    : dishes.filter(dish => dish.status === filter);
+
+  const statusCounts = {
+    total: dishes.length,
+    inProduction: dishes.filter(d => d.status === "IN_PRODUCTION").length,
+    ready: dishes.filter(d => d.status === "READY").length,
+    delivered: dishes.filter(d => d.status === "DELIVERED").length,
   };
 
   const getStatusColor = (status: string) => {
@@ -90,10 +118,53 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">My 3D Dishes</h1>
-              <p className="text-muted-foreground mt-1">Manage your dish orders</p>
+          {/* Welcome & Summary */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Welcome back{restaurantName ? `, ${restaurantName}` : ""}!</h1>
+            <p className="text-muted-foreground mt-1">Manage your 3D dish orders</p>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-4 mb-8">
+            <Card className="shadow-elegant">
+              <CardHeader className="pb-3">
+                <CardDescription>Total Orders</CardDescription>
+                <CardTitle className="text-3xl">{statusCounts.total}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-elegant">
+              <CardHeader className="pb-3">
+                <CardDescription>In Production</CardDescription>
+                <CardTitle className="text-3xl text-yellow-600">{statusCounts.inProduction}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-elegant">
+              <CardHeader className="pb-3">
+                <CardDescription>Ready</CardDescription>
+                <CardTitle className="text-3xl text-green-600">{statusCounts.ready}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-elegant">
+              <CardHeader className="pb-3">
+                <CardDescription>Delivered</CardDescription>
+                <CardTitle className="text-3xl text-purple-600">{statusCounts.delivered}</CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+
+          {/* Orders Table Header */}
+          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex gap-2 flex-wrap">
+              {["All", "NEW", "IN_PRODUCTION", "READY", "DELIVERED", "CANCELLED"].map((status) => (
+                <Button
+                  key={status}
+                  variant={filter === status ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilter(status)}
+                >
+                  {status === "All" ? "All" : status.replace("_", " ")}
+                </Button>
+              ))}
             </div>
             <Button onClick={() => navigate("/app/dishes/new")} className="shadow-elegant">
               <Plus className="h-4 w-4 mr-2" />
@@ -119,9 +190,27 @@ const Dashboard = () => {
                 </Button>
               </CardContent>
             </Card>
+          ) : filteredDishes.length === 0 ? (
+            <Card className="shadow-elegant">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Package className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No dishes found</h3>
+                <p className="text-muted-foreground text-center mb-6 max-w-md">
+                  {filter === "All" 
+                    ? "You don't have any dish orders yet. Start with your first 3D dish."
+                    : `No dishes with status "${filter.replace("_", " ")}"`}
+                </p>
+                {filter === "All" && (
+                  <Button onClick={() => navigate("/app/dishes/new")}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create your first dish
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {dishes.map((dish) => (
+              {filteredDishes.map((dish) => (
                 <Card key={dish.id} className="shadow-elegant hover:shadow-glow transition-shadow cursor-pointer" onClick={() => navigate(`/app/dishes/${dish.id}`)}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
