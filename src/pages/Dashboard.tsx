@@ -6,7 +6,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, LogOut, User, Package } from "lucide-react";
+import { Plus, LogOut, User, Package, Sparkles } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DishOrder {
   id: string;
@@ -14,6 +15,7 @@ interface DishOrder {
   internal_reference: string;
   status: string;
   created_at: string;
+  is_demo: boolean;
 }
 
 const Dashboard = () => {
@@ -49,7 +51,7 @@ const Dashboard = () => {
     try {
       const { data, error } = await supabase
         .from("dish_orders")
-        .select("id, dish_name, internal_reference, status, created_at, price_charged, currency")
+        .select("id, dish_name, internal_reference, status, created_at, price_charged, currency, is_demo")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
@@ -61,6 +63,9 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  const hasAnyDemoDish = dishes.some(d => d.is_demo);
+  const hasNoDishes = dishes.length === 0;
 
   const filteredDishes = filter === "All" 
     ? dishes 
@@ -129,6 +134,16 @@ const Dashboard = () => {
             <p className="text-muted-foreground mt-1">Manage your 3D dish orders</p>
           </div>
 
+          {/* Demo dish banner */}
+          {hasAnyDemoDish && !hasNoDishes && (
+            <Alert className="mb-6 bg-primary/10 border-primary/20">
+              <Sparkles className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Happy with your demo?</strong> Talk to us to scale your 3D menu and create AR experiences for your entire menu.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-4 mb-8">
             <Card className="shadow-elegant">
@@ -171,9 +186,9 @@ const Dashboard = () => {
                 </Button>
               ))}
             </div>
-            <Button onClick={() => navigate("/app/dishes/new")} className="shadow-elegant">
-              <Plus className="h-4 w-4 mr-2" />
-              Create 3D Dish
+            <Button onClick={() => navigate("/app/dishes/new?demo=true")} className="shadow-elegant bg-gradient-primary">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Order Demo Dish
             </Button>
           </div>
 
@@ -184,15 +199,16 @@ const Dashboard = () => {
           ) : dishes.length === 0 ? (
             <Card className="shadow-elegant">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Package className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No dishes yet</h3>
+                <div className="w-24 h-24 mx-auto bg-gradient-primary rounded-full opacity-20 animate-pulse mb-6"></div>
+                <h3 className="text-2xl font-bold mb-2">Start with your first paid demo dish</h3>
                 <p className="text-muted-foreground text-center mb-6 max-w-md">
-                  Get started by creating your first 3D dish order. Upload photos and we'll transform them into an immersive AR experience.
+                  Order a photorealistic 3D model of your signature dish. Upload 8-20 photos, and our team will create an AR-ready 3D visualization that increases guest confidence before ordering.
                 </p>
-                <Button onClick={() => navigate("/app/dishes/new")}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create your first dish
+                <Button onClick={() => navigate("/app/dishes/new?demo=true")} size="lg" className="bg-gradient-primary shadow-glow">
+                  <Sparkles className="h-5 w-5 mr-2" />
+                  Order Your Demo Dish ($99)
                 </Button>
+                <p className="text-xs text-muted-foreground mt-4">Typical delivery: 5-7 business days</p>
               </CardContent>
             </Card>
           ) : filteredDishes.length === 0 ? (

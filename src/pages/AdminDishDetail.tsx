@@ -28,6 +28,7 @@ interface DishOrder {
   created_at: string;
   updated_at: string;
   user_id: string;
+  is_demo: boolean;
   restaurant_profiles: {
     restaurant_name: string;
     country: string | null;
@@ -40,15 +41,24 @@ interface DishPhoto {
   image_url: string;
 }
 
+interface PaymentRecord {
+  id: string;
+  status: string;
+  amount: number;
+  currency: string;
+}
+
 const AdminDishDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [dish, setDish] = useState<DishOrder | null>(null);
   const [photos, setPhotos] = useState<DishPhoto[]>([]);
+  const [payment, setPayment] = useState<PaymentRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
   const [status, setStatus] = useState<Database["public"]["Enums"]["dish_order_status"]>("NEW");
+  const [paymentStatus, setPaymentStatus] = useState<Database["public"]["Enums"]["payment_status"]>("PENDING");
   const [deliveryUrl, setDeliveryUrl] = useState("");
   const [deliveryNote, setDeliveryNote] = useState("");
 
@@ -87,6 +97,20 @@ const AdminDishDetail = () => {
 
       if (photosError) throw photosError;
       setPhotos(photosData || []);
+
+      // Load payment record
+      const { data: paymentData, error: paymentError } = await supabase
+        .from("payment_records")
+        .select("*")
+        .eq("dish_order_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!paymentError && paymentData) {
+        setPayment(paymentData);
+        setPaymentStatus(paymentData.status as Database["public"]["Enums"]["payment_status"]);
+      }
     } catch (error: any) {
       console.error("Error loading dish:", error);
       toast.error("Failed to load dish details");
@@ -94,9 +118,27 @@ const AdminDishDetail = () => {
     } finally {
       setLoading(false);
     }
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "PAID":
+        return "bg-green-500";
+      case "PENDING":
+        return "bg-yellow-500";
+      case "FAILED":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
   };
 
+
   const handleSave = async () => {
+    // Validation: If status is DELIVERED, delivery_url must be present
+    if (status === "DELIVERED" && !deliveryUrl.trim()) {
+      toast.error("Please provide a delivery URL before marking as DELIVERED");
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -109,6 +151,16 @@ const AdminDishDetail = () => {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Update payment status if changed
+      if (payment && paymentStatus !== payment.status) {
+        const { error: paymentError } = await supabase
+          .from("payment_records")
+          .update({ status: paymentStatus })
+          .eq("id", payment.id);
+
+        if (paymentError) throw paymentError;
+      }
 
       toast.success("Order updated successfully!");
       loadDishData();
@@ -265,54 +317,71 @@ const AdminDishDetail = () => {
             </Card>
 
             {/* Admin Controls */}
-            <Card className="shadow-elegant border-primary/20">
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Admin Controls</CardTitle>
-                <CardDescription>Update order status and delivery details</CardDescription>
+                <CardDescription>Update order status and delivery information</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={status} onValueChange={(value) => setStatus(value as Database["public"]["Enums"]["dish_order_status"])}>
-                    <SelectTrigger id="status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NEW">NEW</SelectItem>
-                      <SelectItem value="IN_PRODUCTION">IN PRODUCTION</SelectItem>
-                      <SelectItem value="READY">READY</SelectItem>
-                      <SelectItem value="DELIVERED">DELIVERED</SelectItem>
-                      <SelectItem value="CANCELLED">CANCELLED</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <CardContent className="space-y-6">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Order Status</Label>
+                    <Select value={status} onValueChange={(value) => setStatus(value as Database["public"]["Enums"]["dish_order_status"])}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NEW">NEW</SelectItem>
+                        <SelectItem value="IN_PRODUCTION">IN PRODUCTION</SelectItem>
+                        <SelectItem value="READY">READY</SelectItem>
+                        <SelectItem value="DELIVERED">DELIVERED</SelectItem>
+                        <SelectItem value="CANCELLED">CANCELLED</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {payment && (
+                    <div className="space-y-2">
+                      <Label>Payment Status</Label>
+                      <Select value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as Database["public"]["Enums"]["payment_status"])}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PENDING">PENDING</SelectItem>
+                          <SelectItem value="PAID">PAID</SelectItem>
+                          <SelectItem value="FAILED">FAILED</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="deliveryUrl">Delivery URL</Label>
+                  <Label htmlFor="deliveryUrl">Delivery URL (3D Viewer Link)</Label>
                   <Input
                     id="deliveryUrl"
-                    type="url"
-                    placeholder="https://..."
                     value={deliveryUrl}
                     onChange={(e) => setDeliveryUrl(e.target.value)}
+                    placeholder="https://..."
                   />
-                  <p className="text-sm text-muted-foreground">
-                    Link to Google Drive, Sketchfab, or any 3D/AR viewer
-                  </p>
+                  {status === "DELIVERED" && !deliveryUrl.trim() && (
+                    <p className="text-sm text-destructive">Required before marking as DELIVERED</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="deliveryNote">Delivery Note</Label>
+                  <Label htmlFor="deliveryNote">Delivery Notes</Label>
                   <Textarea
                     id="deliveryNote"
-                    placeholder="Internal or external notes about this delivery..."
                     value={deliveryNote}
                     onChange={(e) => setDeliveryNote(e.target.value)}
+                    placeholder="Internal notes about delivery..."
                     rows={4}
                   />
                 </div>
 
-                <Button onClick={handleSave} disabled={saving} size="lg" className="w-full">
+                <Button onClick={handleSave} disabled={saving} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>

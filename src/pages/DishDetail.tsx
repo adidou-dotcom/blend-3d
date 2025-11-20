@@ -26,11 +26,18 @@ interface DishOrder {
   delivery_note: string | null;
   created_at: string;
   updated_at: string;
+  is_demo: boolean;
 }
 
 interface DishPhoto {
   id: string;
   image_url: string;
+}
+
+interface PaymentRecord {
+  status: string;
+  amount: number;
+  currency: string;
 }
 
 const DishDetail = () => {
@@ -39,6 +46,7 @@ const DishDetail = () => {
   const navigate = useNavigate();
   const [dish, setDish] = useState<DishOrder | null>(null);
   const [photos, setPhotos] = useState<DishPhoto[]>([]);
+  const [payment, setPayment] = useState<PaymentRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,6 +75,19 @@ const DishDetail = () => {
 
       if (photosError) throw photosError;
       setPhotos(photosData || []);
+
+      // Load payment record
+      const { data: paymentData, error: paymentError } = await supabase
+        .from("payment_records")
+        .select("status, amount, currency")
+        .eq("dish_order_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!paymentError && paymentData) {
+        setPayment(paymentData);
+      }
     } catch (error: any) {
       console.error("Error loading dish:", error);
       toast.error("Failed to load dish details");
@@ -87,6 +108,19 @@ const DishDetail = () => {
       case "DELIVERED":
         return "bg-purple-500";
       case "CANCELLED":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "PAID":
+        return "bg-green-500";
+      case "PENDING":
+        return "bg-yellow-500";
+      case "FAILED":
         return "bg-red-500";
       default:
         return "bg-gray-500";
@@ -135,11 +169,19 @@ const DishDetail = () => {
                 <h1 className="text-3xl font-bold">{dish.dish_name}</h1>
                 <p className="text-muted-foreground mt-1">
                   Order {dish.internal_reference}
+                  {dish.is_demo && <span className="ml-2 text-sm font-medium">• Demo Dish</span>}
                 </p>
               </div>
-              <Badge className={getStatusColor(dish.status)}>
-                {dish.status.replace("_", " ")}
-              </Badge>
+              <div className="flex gap-2">
+                <Badge className={getStatusColor(dish.status)}>
+                  {dish.status.replace("_", " ")}
+                </Badge>
+                {payment && (
+                  <Badge className={getPaymentStatusColor(payment.status)}>
+                    {payment.status}
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Info Card */}
