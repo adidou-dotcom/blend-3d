@@ -12,6 +12,7 @@ interface DishOrder {
   description: string | null;
   status: string;
   delivery_url: string | null;
+  user_id: string;
   restaurant_profiles: {
     restaurant_name: string;
     city: string | null;
@@ -24,11 +25,18 @@ interface DishPhoto {
   image_url: string;
 }
 
+interface SubscriptionRecord {
+  status: string;
+  trial_ends_at: string | null;
+}
+
 const DemoViewer = () => {
   const { id } = useParams();
   const [dish, setDish] = useState<DishOrder | null>(null);
   const [photos, setPhotos] = useState<DishPhoto[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPaywalled, setIsPaywalled] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -46,6 +54,7 @@ const DemoViewer = () => {
           description,
           status,
           delivery_url,
+          user_id,
           restaurant_profiles (
             restaurant_name,
             city,
@@ -64,8 +73,29 @@ const DemoViewer = () => {
         .eq("dish_order_id", id)
         .limit(1);
 
+      // Check subscription status for paywall
+      const { data: subData } = await supabase
+        .from("subscription_records")
+        .select("status, trial_ends_at")
+        .eq("user_id", dishData.user_id)
+        .maybeSingle();
+
       setDish(dishData);
       setPhotos(photosData || []);
+      setSubscription(subData);
+
+      // Determine if paywall should be shown
+      if (subData) {
+        const now = new Date();
+        const trialEnd = subData.trial_ends_at ? new Date(subData.trial_ends_at) : null;
+        const isTrialExpired = trialEnd && now > trialEnd;
+
+        const shouldPaywall = 
+          (subData.status === "PAST_DUE" || subData.status === "CANCELED") ||
+          (subData.status === "TRIALING" && isTrialExpired);
+
+        setIsPaywalled(shouldPaywall);
+      }
     } catch (error) {
       console.error("Error loading dish:", error);
     } finally {
@@ -142,7 +172,24 @@ const DemoViewer = () => {
               <CardTitle>3D / AR Viewer</CardTitle>
             </CardHeader>
             <CardContent>
-              {dish.delivery_url ? (
+              {isPaywalled ? (
+                <div className="bg-muted rounded-lg p-12 flex items-center justify-center min-h-[500px]">
+                  <div className="text-center space-y-6 max-w-md">
+                    <div className="text-5xl">🔒</div>
+                    <div>
+                      <h3 className="text-2xl font-bold mb-2">Demo Temporarily Offline</h3>
+                      <p className="text-muted-foreground">
+                        This 3D demo requires an active hosting subscription to remain online.
+                      </p>
+                    </div>
+                    <Button asChild size="lg" className="mt-4">
+                      <Link to="/app/billing">
+                        Renew Hosting
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : dish.delivery_url ? (
                 <iframe src={dish.delivery_url} className="w-full h-[500px] rounded-lg" title="3D Dish Viewer" allowFullScreen />
               ) : (
                 <div className="bg-muted rounded-lg p-12 flex items-center justify-center min-h-[500px]">

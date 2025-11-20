@@ -13,6 +13,7 @@ interface SendEmailParams {
     dishOrderId?: string;
     city?: string;
     country?: string;
+    trialEndsAt?: string | null;
   };
 }
 
@@ -93,6 +94,7 @@ export const notifyRestaurantOrderDelivered = async (
   orderData: {
     dishName: string;
     dishOrderId: string;
+    trialEndsAt?: string | null;
   }
 ) => {
   return sendNotificationEmail({
