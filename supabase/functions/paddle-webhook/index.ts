@@ -41,6 +41,41 @@ serve(async (req: Request) => {
         console.log("Transaction paid:", transaction.id);
         console.log("Custom data:", customData);
 
+        // Handle credits purchase
+        if (customData.userId && customData.dishesCount) {
+          const dishesCount = parseInt(customData.dishesCount);
+          
+          // Get current credits
+          const { data: profileData, error: fetchError } = await supabase
+            .from("restaurant_profiles")
+            .select("pack_dishes_remaining, pack_dishes_total")
+            .eq("user_id", customData.userId)
+            .single();
+
+          if (fetchError) {
+            console.error("Error fetching profile:", fetchError);
+          } else {
+            const currentRemaining = profileData?.pack_dishes_remaining || 0;
+            const currentTotal = profileData?.pack_dishes_total || 0;
+
+            // Increment credits
+            const { error: updateError } = await supabase
+              .from("restaurant_profiles")
+              .update({
+                pack_dishes_remaining: currentRemaining + dishesCount,
+                pack_dishes_total: currentTotal + dishesCount,
+                pack_purchased_at: new Date().toISOString(),
+              })
+              .eq("user_id", customData.userId);
+
+            if (updateError) {
+              console.error("Error updating credits:", updateError);
+            } else {
+              console.log(`Added ${dishesCount} credits to user ${customData.userId}`);
+            }
+          }
+        }
+
         // Update payment record if exists
         if (customData.dishOrderId) {
           const { error: paymentError } = await supabase
@@ -50,22 +85,6 @@ serve(async (req: Request) => {
 
           if (paymentError) {
             console.error("Error updating payment:", paymentError);
-          }
-        }
-
-        // Handle pack purchase - update restaurant profile quota
-        if (customData.packDishes && customData.userId) {
-          const { error: profileError } = await supabase
-            .from("restaurant_profiles")
-            .update({
-              pack_dishes_remaining: customData.packDishes,
-              pack_dishes_total: customData.packDishes,
-              pack_purchased_at: new Date().toISOString(),
-            })
-            .eq("user_id", customData.userId);
-
-          if (profileError) {
-            console.error("Error updating pack quota:", profileError);
           }
         }
 
