@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowRight, Upload, Sparkles, QrCode, Eye, TrendingUp, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { PRICING, MIN_PHOTOS, MAX_PHOTOS } from "@/config/pricing";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Index = () => {
     },
     {
       question: "What kind of photos do I need to provide?",
-      answer: "We need 8-20 high-quality photos of your dish from different angles, with good lighting and preferably on a neutral background. The more variety in angles, the better the final 3D model.",
+      answer: `We need ${MIN_PHOTOS}-${MAX_PHOTOS} high-quality photos of your dish from different angles, with good lighting and preferably on a neutral background. The more variety in angles, the better the final 3D model.`,
     },
     {
       question: "Who owns the 3D assets?",
@@ -121,7 +122,7 @@ const Index = () => {
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                   <Upload className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>1. Upload 8–20 photos of your dish</CardTitle>
+                <CardTitle>1. Upload {MIN_PHOTOS}–{MAX_PHOTOS} photos of your dish</CardTitle>
                 <CardDescription className="text-base">
                   Take photos from different angles with good lighting. The more variety, the better the final result.
                 </CardDescription>
@@ -212,35 +213,21 @@ const Index = () => {
           <div className="mx-auto max-w-lg">
             <Card className="shadow-elegant border-primary/20">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">Single Dish Demo</CardTitle>
+                <CardTitle className="text-2xl">{PRICING.DEMO_DISH.DESCRIPTION}</CardTitle>
                 <CardDescription className="text-base">Perfect for testing the waters</CardDescription>
                 <div className="mt-6">
-                  <span className="text-5xl font-bold">From $99</span>
+                  <span className="text-5xl font-bold">{PRICING.DEMO_DISH.DISPLAY}</span>
                   <span className="text-muted-foreground ml-2">/ dish</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-                    <span>Upload 8–20 reference photos</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-                    <span>Includes 1 3D model + 1 AR-ready format</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-                    <span>Typical delivery: 5–7 business days</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-                    <span>Web viewer link + QR code</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-                    <span>Full commercial rights to the 3D model</span>
-                  </li>
+                  {PRICING.DEMO_DISH.FEATURES.map((feature, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
                 </ul>
                 <Button size="lg" className="w-full shadow-elegant" onClick={handleGetStarted}>
                   Start with one dish
