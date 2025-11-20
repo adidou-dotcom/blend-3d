@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Mail } from "lucide-react";
+import { notifyRestaurantOrderReady, notifyRestaurantOrderDelivered } from "@/services/emailService";
 
 interface DishOrder {
   id: string;
@@ -140,7 +141,9 @@ const AdminDishDetail = () => {
       return;
     }
 
+    const previousStatus = dish?.status;
     setSaving(true);
+    
     try {
       const { error } = await supabase
         .from("dish_orders")
@@ -164,6 +167,42 @@ const AdminDishDetail = () => {
       }
 
       toast.success("Order updated successfully!");
+
+      // Send email notifications if status changed
+      if (dish && previousStatus !== status) {
+        // Get user email from user_id
+        const { data: { user: userData } } = await supabase.auth.admin.getUserById(dish.user_id);
+        const userEmail = userData?.email;
+
+        if (userEmail) {
+          if (status === "READY") {
+            // Notify restaurant that order is ready for review
+            const emailResult = await notifyRestaurantOrderReady(userEmail, {
+              dishName: dish.dish_name,
+              dishOrderId: dish.id,
+            });
+            
+            if (emailResult.success) {
+              toast.success("Email notification sent to restaurant", { icon: <Mail className="h-4 w-4" /> });
+            } else {
+              console.warn("Failed to send READY email:", emailResult.error);
+            }
+          } else if (status === "DELIVERED") {
+            // Notify restaurant that order is delivered
+            const emailResult = await notifyRestaurantOrderDelivered(userEmail, {
+              dishName: dish.dish_name,
+              dishOrderId: dish.id,
+            });
+            
+            if (emailResult.success) {
+              toast.success("Email notification sent to restaurant", { icon: <Mail className="h-4 w-4" /> });
+            } else {
+              console.warn("Failed to send DELIVERED email:", emailResult.error);
+            }
+          }
+        }
+      }
+
       loadDishData();
     } catch (error: any) {
       console.error("Error updating order:", error);
