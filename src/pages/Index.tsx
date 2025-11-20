@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowRight, Upload, Sparkles, QrCode, Eye, TrendingUp, Check } from "lucide-react";
@@ -207,36 +208,121 @@ const Index = () => {
           <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
             <h2 className="text-3xl font-bold sm:text-4xl">Simple, Transparent Pricing</h2>
             <p className="text-xl text-muted-foreground">
-              Start with one dish, scale when you're ready
+              Start with one dish, or save with multi-dish packs
             </p>
           </div>
-          <div className="mx-auto max-w-lg">
-            <Card className="shadow-elegant border-primary/20">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl">{PRICING.DEMO_DISH.DESCRIPTION}</CardTitle>
-                <CardDescription className="text-base">Perfect for testing the waters</CardDescription>
-                <div className="mt-6">
-                  <span className="text-5xl font-bold">{PRICING.DEMO_DISH.DISPLAY}</span>
-                  <span className="text-muted-foreground ml-2">/ dish</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <ul className="space-y-3">
-                  {PRICING.DEMO_DISH.FEATURES.map((feature, idx) => (
-                    <li key={idx} className="flex items-start">
-                      <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button size="lg" className="w-full shadow-elegant" onClick={handleGetStarted}>
-                  Start with one dish
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </CardContent>
-            </Card>
+
+          {/* Single Dish */}
+          <div className="mx-auto max-w-6xl space-y-12">
+            <div className="mx-auto max-w-lg">
+              <Card className="shadow-elegant border-primary/20">
+                <CardHeader className="text-center pb-8">
+                  <CardTitle className="text-2xl">{PRICING.SINGLE.description}</CardTitle>
+                  <CardDescription className="text-base">Perfect for testing the waters</CardDescription>
+                  <div className="mt-6">
+                    <span className="text-5xl font-bold">{PRICING.SINGLE.display}</span>
+                    <span className="text-muted-foreground ml-2">/ dish</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <Button size="lg" className="w-full shadow-elegant" onClick={handleGetStarted}>
+                    Start with one dish
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Multi-Dish Packs */}
+            <div>
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold mb-2">Multi-Dish Packs</h3>
+                <p className="text-muted-foreground">Save more when you order multiple dishes</p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-5">
+                {PRICING.PACKS.map((pack) => (
+                  <Card key={pack.dishes} className="shadow-elegant hover:shadow-2xl transition-shadow">
+                    <CardHeader className="text-center">
+                      <div className="mb-2">
+                        <Badge variant="secondary">{pack.savings} off</Badge>
+                      </div>
+                      <CardTitle className="text-3xl font-bold">{pack.dishes}</CardTitle>
+                      <CardDescription>dishes</CardDescription>
+                      <div className="mt-4">
+                        <span className="text-2xl font-bold">{pack.display}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ${pack.perDish.toFixed(2)} per dish
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <Button className="w-full" variant="outline" onClick={handleGetStarted}>
+                        Get Started
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Hosting Plans */}
+            <div>
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold mb-2">Hosting & Maintenance</h3>
+                <p className="text-muted-foreground">Keep your 3D dishes live with a hosting plan - First 30 days free!</p>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+                <Card className="shadow-elegant">
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-2xl">{PRICING.HOSTING.BASIC.name}</CardTitle>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold">{PRICING.HOSTING.BASIC.display}</span>
+                    </div>
+                    <p className="text-sm text-primary mt-2">First 30 days free</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-2">
+                      {PRICING.HOSTING.BASIC.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start text-sm">
+                          <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button className="w-full" variant="outline" onClick={handleGetStarted}>
+                      Start Free Trial
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-elegant border-primary/50">
+                  <CardHeader className="text-center">
+                    <Badge className="mb-2">Popular</Badge>
+                    <CardTitle className="text-2xl">{PRICING.HOSTING.PRO.name}</CardTitle>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold">{PRICING.HOSTING.PRO.display}</span>
+                    </div>
+                    <p className="text-sm text-primary mt-2">First 30 days free</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-2">
+                      {PRICING.HOSTING.PRO.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start text-sm">
+                          <Check className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button className="w-full shadow-elegant" onClick={handleGetStarted}>
+                      Start Free Trial
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
             <p className="text-center text-sm text-muted-foreground mt-8">
-              Multi-dish plans and full-menu workflows are available on request.
+              Need a custom solution for your restaurant group? <a href="mailto:hello@menublend.com" className="text-primary hover:underline">Contact us</a>
             </p>
           </div>
         </div>

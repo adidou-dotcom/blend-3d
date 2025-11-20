@@ -160,6 +160,9 @@ export type Database = {
           id: string
           logo_url: string | null
           onboarding_completed: boolean
+          pack_dishes_remaining: number | null
+          pack_dishes_total: number | null
+          pack_purchased_at: string | null
           restaurant_name: string
           updated_at: string
           user_id: string
@@ -173,6 +176,9 @@ export type Database = {
           id?: string
           logo_url?: string | null
           onboarding_completed?: boolean
+          pack_dishes_remaining?: number | null
+          pack_dishes_total?: number | null
+          pack_purchased_at?: string | null
           restaurant_name: string
           updated_at?: string
           user_id: string
@@ -186,11 +192,50 @@ export type Database = {
           id?: string
           logo_url?: string | null
           onboarding_completed?: boolean
+          pack_dishes_remaining?: number | null
+          pack_dishes_total?: number | null
+          pack_purchased_at?: string | null
           restaurant_name?: string
           updated_at?: string
           user_id?: string
           website_url?: string | null
           whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      subscription_records: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          paddle_subscription_id: string | null
+          plan: string
+          status: string
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          paddle_subscription_id?: string | null
+          plan: string
+          status: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          paddle_subscription_id?: string | null
+          plan?: string
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

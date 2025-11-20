@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateDish from "./pages/CreateDish";
 import DishDetail from "./pages/DishDetail";
 import Profile from "./pages/Profile";
+import Billing from "./pages/Billing";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminDishes from "./pages/AdminDishes";
 import AdminDishDetail from "./pages/AdminDishDetail";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/app/dishes/new" element={<CreateDish />} />
             <Route path="/app/dishes/:id" element={<DishDetail />} />
             <Route path="/app/profile" element={<Profile />} />
+            <Route path="/app/billing" element={<Billing />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/dishes" element={<AdminDishes />} />
             <Route path="/admin/dishes/:id" element={<AdminDishDetail />} />

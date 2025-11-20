@@ -89,8 +89,8 @@ const CreateDish = () => {
           target_use_case: targetUseCase || null,
           status: "NEW",
           is_demo: isDemo,
-          price_charged: PRICING.DEMO_DISH.PRICE,
-          currency: PRICING.DEMO_DISH.CURRENCY,
+          price_charged: PRICING.SINGLE.price,
+          currency: PRICING.SINGLE.currency,
         })
         .select()
         .single();
@@ -193,8 +193,8 @@ const CreateDish = () => {
         .insert({
           dish_order_id: dishOrderId,
           user_id: user!.id,
-          amount: PRICING.DEMO_DISH.PRICE,
-          currency: PRICING.DEMO_DISH.CURRENCY,
+          amount: PRICING.SINGLE.price,
+          currency: PRICING.SINGLE.currency,
           status: "PENDING",
           provider: "manual",
         });
