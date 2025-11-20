@@ -1,45 +1,28 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowRight, Upload, Sparkles, QrCode, Eye, TrendingUp, Zap, Check } from "lucide-react";
+import { ArrowRight, Upload, Sparkles, QrCode, Eye, TrendingUp, Check } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
-  const features = [
-    {
-      icon: Upload,
-      title: "Upload Your Dish Photos",
-      description: "Simply upload 8-20 high-quality photos of your signature dish from different angles.",
-    },
-    {
-      icon: Sparkles,
-      title: "We Create the 3D/AR Experience",
-      description: "Our team and 3D specialists transform your photos into an immersive experience.",
-    },
-    {
-      icon: QrCode,
-      title: "Get Your Link & QR Code",
-      description: "Receive a Web AR link and QR code ready for menus, websites, and displays.",
-    },
-  ];
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const benefits = [
-    {
-      icon: Eye,
-      title: "Build Trust & Confidence",
-      description: "Let guests preview dishes before ordering, reducing uncertainty and increasing satisfaction.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Boost Average Check Size",
-      description: "Premium dishes deserve premium presentation. 3D/AR helps justify higher prices.",
-    },
-    {
-      icon: Zap,
-      title: "Zero Technical Complexity",
-      description: "No apps to download, no tech team needed. We handle everything from start to finish.",
-    },
-  ];
+  const handleGetStarted = () => {
+    if (user) {
+      navigate("/app/dishes/new");
+    } else {
+      navigate("/signup");
+    }
+  };
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const faqs = [
     {
@@ -85,244 +68,247 @@ const Index = () => {
             <Link to="/login">
               <Button variant="ghost" size="sm">Login</Button>
             </Link>
-            <Link to="/signup">
-              <Button size="sm" className="shadow-elegant">Get Started</Button>
-            </Link>
+            <Button size="sm" className="shadow-elegant" onClick={handleGetStarted}>Get Started</Button>
           </nav>
           <div className="md:hidden">
-            <Link to="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
+            <Button size="sm" onClick={handleGetStarted}>
+              Get Started
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 md:py-32">
-        <div className="absolute inset-0 bg-gradient-hero opacity-5"></div>
-        <div className="container mx-auto px-4 relative">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-              Turn Your Dishes Into
-              <span className="block bg-gradient-primary bg-clip-text text-transparent mt-2">
-                Immersive 3D/AR Experiences
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b bg-gradient-subtle">
+        <div className="container mx-auto px-4 py-20 md:py-32">
+          <div className="mx-auto max-w-4xl text-center space-y-8">
+            <div className="inline-block mb-4">
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+                Premium 3D & AR visuals for restaurants
               </span>
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Menublend helps restaurants showcase their signature dishes in 3D/AR through a simple online workflow. No apps. No tech headaches.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/signup">
-                <Button size="lg" className="shadow-glow text-lg px-8">
-                  Start with One 3D Dish
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="text-lg px-8" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
-                View How It Works
-              </Button>
             </div>
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary" />
-                <span>No long-term contracts</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary" />
-                <span>Pay per dish</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary" />
-                <span>Ready in 5-7 days</span>
-              </div>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl bg-gradient-primary bg-clip-text text-transparent leading-tight">
+              Turn your signature dishes into 3D & AR-ready visuals
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Order one 3D dish as a paid demo. If you like the result, scale to your full menu.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Button size="lg" className="shadow-elegant text-lg px-8" onClick={handleGetStarted}>
+                Get your first 3D dish
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => scrollToSection("how-it-works")}>
+                See how it works
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-gradient-subtle">
+      {/* How it Works */}
+      <section id="how-it-works" className="py-20 md:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Three simple steps to transform your dishes into 3D/AR experiences
+          <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
+            <h2 className="text-3xl font-bold sm:text-4xl">How it Works</h2>
+            <p className="text-xl text-muted-foreground">
+              From your photos to 3D/AR in three simple steps
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {features.map((feature, index) => (
-              <Card key={index} className="shadow-elegant hover:shadow-glow transition-shadow">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-gradient-primary flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <CardTitle>Step {index + 1}: {feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid gap-8 md:grid-cols-3 mx-auto max-w-5xl">
+            <Card className="relative overflow-hidden shadow-elegant hover:shadow-2xl transition-shadow">
+              <CardHeader>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Upload className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>1. Upload 8–20 photos of your dish</CardTitle>
+                <CardDescription className="text-base">
+                  Take photos from different angles with good lighting. The more variety, the better the final result.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="relative overflow-hidden shadow-elegant hover:shadow-2xl transition-shadow">
+              <CardHeader>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>2. Our team creates a production-ready 3D / AR model</CardTitle>
+                <CardDescription className="text-base">
+                  Our specialists transform your photos into an immersive 3D model optimized for web and AR viewing.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="relative overflow-hidden shadow-elegant hover:shadow-2xl transition-shadow">
+              <CardHeader>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <QrCode className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>3. You receive the 3D/AR assets + a shareable viewer link</CardTitle>
+                <CardDescription className="text-base">
+                  Get your model files, viewer link, and QR code ready for menus, websites, and marketing.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Benefits */}
-      <section className="py-20">
+      <section className="py-20 md:py-32 bg-gradient-subtle border-y">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Restaurants Love Menublend</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Elevate your restaurant's dining experience
+          <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
+            <h2 className="text-3xl font-bold sm:text-4xl">Why 3D/AR for Your Menu?</h2>
+            <p className="text-xl text-muted-foreground">
+              Visual clarity that drives decisions and increases revenue
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="shadow-elegant">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-accent flex items-center justify-center mb-4">
-                    <benefit.icon className="h-6 w-6 text-accent-foreground" />
-                  </div>
-                  <CardTitle>{benefit.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">{benefit.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid gap-8 md:grid-cols-3 mx-auto max-w-5xl">
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <TrendingUp className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Higher conversion on high-margin dishes</CardTitle>
+                <CardDescription className="text-base">
+                  Premium dishes deserve premium presentation. 3D/AR helps justify higher prices and increases order value.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Eye className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Visual clarity for guests</CardTitle>
+                <CardDescription className="text-base">
+                  Let guests preview dishes before ordering, reducing uncertainty and increasing satisfaction.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Social media / marketing assets</CardTitle>
+                <CardDescription className="text-base">
+                  Use your 3D models across social media, your website, and marketing campaigns to stand out.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 bg-gradient-subtle">
+      <section id="pricing" className="py-20 md:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
+            <h2 className="text-3xl font-bold sm:text-4xl">Simple, Transparent Pricing</h2>
             <p className="text-xl text-muted-foreground">
-              Pay per dish, no hidden fees
+              Start with one dish, scale when you're ready
             </p>
           </div>
-          <Card className="max-w-md mx-auto shadow-elegant">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Single 3D Dish</CardTitle>
-              <div className="mt-4">
-                <span className="text-5xl font-bold">$99</span>
-                <span className="text-muted-foreground ml-2">per dish</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Professional 3D model of your dish</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Web AR experience (no app needed)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Custom QR code for menus</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Shareable web link</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span>5-7 day delivery</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Status tracking dashboard</span>
-                </li>
-              </ul>
-              <Link to="/signup" className="block">
-                <Button className="w-full mt-6" size="lg">
-                  Get Started Now
+          <div className="mx-auto max-w-lg">
+            <Card className="shadow-elegant border-primary/20">
+              <CardHeader className="text-center pb-8">
+                <CardTitle className="text-2xl">Single Dish Demo</CardTitle>
+                <CardDescription className="text-base">Perfect for testing the waters</CardDescription>
+                <div className="mt-6">
+                  <span className="text-5xl font-bold">From $99</span>
+                  <span className="text-muted-foreground ml-2">/ dish</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                    <span>Upload 8–20 reference photos</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                    <span>Includes 1 3D model + 1 AR-ready format</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                    <span>Typical delivery: 5–7 business days</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                    <span>Web viewer link + QR code</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                    <span>Full commercial rights to the 3D model</span>
+                  </li>
+                </ul>
+                <Button size="lg" className="w-full shadow-elegant" onClick={handleGetStarted}>
+                  Start with one dish
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </Link>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            <p className="text-center text-sm text-muted-foreground mt-8">
+              Multi-dish plans and full-menu workflows are available on request.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-20">
+      <section id="faq" className="py-20 md:py-32 bg-gradient-subtle border-y">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+          <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
+            <h2 className="text-3xl font-bold sm:text-4xl">Frequently Asked Questions</h2>
+            <p className="text-xl text-muted-foreground">
+              Everything you need to know about getting started
+            </p>
           </div>
-          <Accordion type="single" collapsible className="max-w-3xl mx-auto">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <div className="mx-auto max-w-3xl">
+            <Accordion type="single" collapsible className="space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="bg-background rounded-lg border px-6 shadow-sm">
+                  <AccordionTrigger className="text-left hover:no-underline">
+                    <span className="font-semibold">{faq.question}</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Dishes?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join restaurants worldwide showcasing their cuisine in stunning 3D/AR
-          </p>
-          <Link to="/signup">
-            <Button size="lg" variant="secondary" className="shadow-glow text-lg px-8">
-              Create Your First 3D Dish
+      <section className="py-20 md:py-32 bg-gradient-subtle border-t">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center space-y-8">
+            <h2 className="text-3xl font-bold sm:text-4xl">
+              Ready to Transform Your Menu?
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Start with one dish. See the quality. Then scale to your full menu.
+            </p>
+            <Button size="lg" className="shadow-elegant text-lg px-8" onClick={handleGetStarted}>
+              Get your first 3D dish
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-          </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-12 bg-background">
+      <footer className="border-t py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-4">
-                Menublend
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Transform your dishes into immersive 3D/AR experiences.
-              </p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Menublend
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</a></li>
-                <li><a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Account</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/login" className="hover:text-foreground transition-colors">Login</Link></li>
-                <li><Link to="/signup" className="hover:text-foreground transition-colors">Sign Up</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
-              <p className="text-sm text-muted-foreground">
-                <a href="mailto:hello@menublend.com" className="hover:text-foreground transition-colors">
-                  hello@menublend.com
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} Menublend. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">
+              © 2024 Menublend. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
