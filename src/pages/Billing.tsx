@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { ArrowLeft, CreditCard, Package, ExternalLink } from "lucide-react";
 import { PRICING } from "@/config/pricing";
-import { openSubscriptionCheckout } from "@/services/paddle";
+import { openSubscriptionCheckout, openCheckout } from "@/services/paddle";
 
 interface SubscriptionRecord {
   id: string;

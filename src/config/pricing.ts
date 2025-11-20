@@ -4,91 +4,93 @@
 
 export const PRICING = {
   SINGLE: {
-    id: 'pri_01jd8xample1', // Replace with actual Paddle price ID
+    id: 'pri_01jd8xample1', // TODO: Replace with actual Paddle price ID
     dishes: 1,
     price: 99,
     currency: 'USD',
     display: '$99',
-    description: 'Single 3D/AR dish',
+    description: 'Single 3D/AR demo dish',
     perDish: 99,
   },
   PACKS: [
     {
-      id: 'pri_01jd8xample5', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xample5', // TODO: Replace with actual Paddle price ID
       dishes: 5,
       price: 449,
       currency: 'USD',
       display: '$449',
       perDish: 89.80,
-      savings: '10%',
+      savings: '10% off',
     },
     {
-      id: 'pri_01jd8xample10', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xample10', // TODO: Replace with actual Paddle price ID
       dishes: 10,
-      price: 849,
+      price: 799,
       currency: 'USD',
-      display: '$849',
-      perDish: 84.90,
-      savings: '14%',
+      display: '$799',
+      perDish: 79.90,
+      savings: '19% off',
     },
     {
-      id: 'pri_01jd8xample15', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xample15', // TODO: Replace with actual Paddle price ID
       dishes: 15,
-      price: 1199,
+      price: 1125,
       currency: 'USD',
-      display: '$1,199',
-      perDish: 79.93,
-      savings: '19%',
+      display: '$1,125',
+      perDish: 75.00,
+      savings: '24% off',
     },
     {
-      id: 'pri_01jd8xample20', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xample20', // TODO: Replace with actual Paddle price ID
       dishes: 20,
-      price: 1499,
+      price: 1399,
       currency: 'USD',
-      display: '$1,499',
-      perDish: 74.95,
-      savings: '24%',
+      display: '$1,399',
+      perDish: 69.95,
+      savings: '29% off',
     },
     {
-      id: 'pri_01jd8xample30', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xample30', // TODO: Replace with actual Paddle price ID
       dishes: 30,
-      price: 1999,
+      price: 1899,
       currency: 'USD',
-      display: '$1,999',
-      perDish: 66.63,
-      savings: '33%',
+      display: '$1,899',
+      perDish: 63.30,
+      savings: '36% off',
     },
   ],
   HOSTING: {
     BASIC: {
-      id: 'pri_01jd8xamplebasic', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xamplebasic', // TODO: Replace with actual Paddle price ID
       name: 'Basic Hosting',
-      monthly: 39,
+      monthly: 29,
       currency: 'USD',
-      display: '$39/mo',
+      display: '$29/mo',
       dishLimit: 10,
       trialDays: 30,
       features: [
-        'Up to 10 3D dishes hosted',
+        'Up to 10 active hosted dishes',
         'Unlimited public views',
         'Basic analytics',
         'Email support',
+        '30-day free trial',
       ],
     },
     PRO: {
-      id: 'pri_01jd8xamplepro', // Replace with actual Paddle price ID
+      id: 'pri_01jd8xamplepro', // TODO: Replace with actual Paddle price ID
       name: 'Pro Hosting',
-      monthly: 69,
+      monthly: 59,
       currency: 'USD',
-      display: '$69/mo',
+      display: '$59/mo',
       dishLimit: 30,
       trialDays: 30,
       features: [
-        'Up to 30 3D dishes hosted',
+        'Up to 30 active hosted dishes',
         'Unlimited public views',
         'Advanced analytics',
         'Priority email support',
         'Custom branding options',
+        '30-day free trial',
       ],
     },
   },

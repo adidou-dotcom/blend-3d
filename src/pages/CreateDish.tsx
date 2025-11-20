@@ -76,6 +76,27 @@ const CreateDish = () => {
       return;
     }
 
+    // Check if user has credits
+    const { data: profileData, error: profileError } = await supabase
+      .from("restaurant_profiles")
+      .select("pack_dishes_remaining")
+      .eq("user_id", user?.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error loading profile:", profileError);
+      toast.error("Failed to check credits");
+      return;
+    }
+
+    const creditsRemaining = profileData?.pack_dishes_remaining || 0;
+    
+    if (creditsRemaining <= 0) {
+      toast.error("No dish credits remaining. Please purchase credits first.");
+      navigate("/app/billing");
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -187,6 +208,26 @@ const CreateDish = () => {
 
     setLoading(true);
     try {
+      // Decrement credits
+      const { data: profileData, error: fetchError } = await supabase
+        .from("restaurant_profiles")
+        .select("pack_dishes_remaining")
+        .eq("user_id", user?.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const creditsRemaining = profileData?.pack_dishes_remaining || 0;
+
+      const { error: updateError } = await supabase
+        .from("restaurant_profiles")
+        .update({
+          pack_dishes_remaining: Math.max(0, creditsRemaining - 1),
+        })
+        .eq("user_id", user?.id);
+
+      if (updateError) throw updateError;
+
       // Create payment record
       const { error: paymentError } = await supabase
         .from("payment_records")
@@ -195,8 +236,8 @@ const CreateDish = () => {
           user_id: user!.id,
           amount: PRICING.SINGLE.price,
           currency: PRICING.SINGLE.currency,
-          status: "PENDING",
-          provider: "manual",
+          status: "PAID", // Mark as paid since credit was consumed
+          provider: "paddle",
         });
 
       if (paymentError) throw paymentError;
@@ -213,7 +254,7 @@ const CreateDish = () => {
         });
       }
 
-      toast.success("Your demo dish has been submitted! We'll review your photos and send you the 3D/AR result.");
+      toast.success("Order submitted! We'll create your 3D/AR dish and notify you when ready.");
       navigate("/app");
     } catch (error: any) {
       console.error("Error confirming order:", error);

@@ -6,8 +6,11 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, LogOut, User, Package, Sparkles, Info } from "lucide-react";
+import { toast } from "sonner";
+import { Plus, LogOut, User, Package, Sparkles, Info, ShoppingBag } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PRICING } from "@/config/pricing";
+import { openCheckout } from "@/services/paddle";
 
 interface DishOrder {
   id: string;
@@ -22,6 +25,7 @@ interface RestaurantProfile {
   restaurant_name: string;
   pack_dishes_remaining: number;
   pack_dishes_total: number;
+  pack_purchased_at: string | null;
 }
 
 const Dashboard = () => {
@@ -39,11 +43,39 @@ const Dashboard = () => {
     }
   }, [user]);
 
+  const handleOrderDemoDish = async () => {
+    if (!profile) return;
+    
+    const creditsRemaining = profile.pack_dishes_remaining || 0;
+    
+    if (creditsRemaining > 0) {
+      // User has credits, go directly to create dish
+      navigate("/app/dishes/new");
+    } else {
+      // No credits, open Paddle checkout for single dish
+      try {
+        await openCheckout({
+          priceId: PRICING.SINGLE.id,
+          customerEmail: user?.email || "",
+          successUrl: `${window.location.origin}/app?purchase=success`,
+          customData: {
+            userId: user?.id,
+            productType: "single",
+            dishesCount: 1,
+          },
+        });
+      } catch (error) {
+        console.error("Paddle checkout error:", error);
+        toast.error("Failed to open checkout. Please try again.");
+      }
+    }
+  };
+
   const loadProfile = async () => {
     try {
       const { data } = await supabase
         .from("restaurant_profiles")
-        .select("restaurant_name, pack_dishes_remaining, pack_dishes_total")
+        .select("restaurant_name, pack_dishes_remaining, pack_dishes_total, pack_purchased_at")
         .eq("user_id", user?.id)
         .single();
       
@@ -181,28 +213,30 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Pack Quota Widget */}
-          {profile && profile.pack_dishes_remaining > 0 && (
-            <Card className="mb-6 shadow-elegant bg-gradient-to-br from-primary/10 to-background border-primary/20">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      Multi-Dish Pack Active
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      You can create {profile.pack_dishes_remaining} more dish{profile.pack_dishes_remaining !== 1 ? 'es' : ''} without additional payment
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-primary">{profile.pack_dishes_remaining}</div>
-                    <div className="text-sm text-muted-foreground">of {profile.pack_dishes_total} remaining</div>
-                  </div>
+          {/* Dish Credits Widget */}
+          <Card className="mb-6 bg-gradient-to-br from-primary/10 to-background border-primary/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Dish Credits Available</p>
+                  <p className="text-3xl font-bold text-primary">
+                    {profile?.pack_dishes_remaining || 0}
+                    {(profile?.pack_dishes_total ?? 0) > 0 && (
+                      <span className="text-lg text-muted-foreground ml-1">
+                        / {profile.pack_dishes_total}
+                      </span>
+                    )}
+                  </p>
                 </div>
-              </CardHeader>
-            </Card>
-          )}
+                <Package className="h-12 w-12 text-primary/50" />
+              </div>
+              {profile?.pack_purchased_at && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Credits purchased on {new Date(profile.pack_purchased_at).toLocaleDateString()}
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Orders Table Header */}
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -220,33 +254,23 @@ const Dashboard = () => {
             </div>
             <div className="flex gap-2">
               <Button 
-                onClick={() => navigate("/app/dishes/new")} 
+                onClick={handleOrderDemoDish}
                 className="shadow-elegant"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Dish Order
+                {(profile?.pack_dishes_remaining ?? 0) > 0 ? "Create Dish Order" : `Order Dish (${PRICING.SINGLE.display})`}
               </Button>
-              {!hasPendingDemoOrder && !hasAnyDemoDish && (
-                <Button 
-                  onClick={() => navigate("/app/dishes/new?demo=true")} 
-                  variant="outline"
-                  className="border-primary/50"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Try Demo ($99)
-                </Button>
-              )}
+              <Button 
+                onClick={() => navigate("/app/billing")} 
+                variant="outline"
+                className="border-primary/50"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Buy Credits
+              </Button>
             </div>
           </div>
 
-          {hasPendingDemoOrder && (
-            <Alert className="mt-4 mb-2">
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                You already have a demo dish in progress. Once it's delivered, you'll be able to order another one.
-              </AlertDescription>
-            </Alert>
-          )}
 
           {loading ? (
             <div className="flex justify-center py-12">
@@ -256,20 +280,22 @@ const Dashboard = () => {
             <Card className="shadow-elegant">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="w-24 h-24 mx-auto bg-gradient-primary rounded-full opacity-20 animate-pulse mb-6"></div>
-                <h3 className="text-2xl font-bold mb-2">Start with your first 3D dish</h3>
+                <h3 className="text-2xl font-bold mb-2">Order Your First 3D Dish</h3>
                 <p className="text-muted-foreground text-center mb-6 max-w-md">
-                  Try a single dish for $99 or save with a multi-dish pack. Upload 8-20 photos, and our team will create an AR-ready 3D visualization.
+                  {(profile?.pack_dishes_remaining ?? 0) > 0 
+                    ? `You have ${profile?.pack_dishes_remaining} credits. Create your first dish order now!`
+                    : `Start with a single dish for ${PRICING.SINGLE.display} or save with multi-dish packs. Upload 8-20 photos to get started.`}
                 </p>
                 <div className="flex gap-3">
-                  <Button onClick={() => navigate("/app/dishes/new?demo=true")} size="lg" variant="outline">
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Try Demo ($99)
+                  <Button onClick={handleOrderDemoDish} size="lg">
+                    {(profile?.pack_dishes_remaining ?? 0) > 0 ? "Create Dish Order" : `Order Demo (${PRICING.SINGLE.display})`}
                   </Button>
-                  <Button onClick={() => navigate("/#pricing")} size="lg" className="bg-gradient-primary shadow-glow">
-                    View Packs
+                  <Button onClick={() => navigate("/app/billing")} size="lg" variant="outline">
+                    <Package className="h-5 w-5 mr-2" />
+                    View Pricing
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">Typical delivery: 5-7 business days</p>
+                <p className="text-xs text-muted-foreground mt-4">Typical delivery: 3-5 business days</p>
               </CardContent>
             </Card>
           ) : filteredDishes.length === 0 ? (
