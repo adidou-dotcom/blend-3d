@@ -18,32 +18,38 @@ interface DishOrder {
   is_demo: boolean;
 }
 
+interface RestaurantProfile {
+  restaurant_name: string;
+  pack_dishes_remaining: number;
+  pack_dishes_total: number;
+}
+
 const Dashboard = () => {
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [dishes, setDishes] = useState<DishOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("All");
-  const [restaurantName, setRestaurantName] = useState("");
+  const [profile, setProfile] = useState<RestaurantProfile | null>(null);
 
   useEffect(() => {
     if (user) {
       loadDishes();
-      loadRestaurantName();
+      loadProfile();
     }
   }, [user]);
 
-  const loadRestaurantName = async () => {
+  const loadProfile = async () => {
     try {
       const { data } = await supabase
         .from("restaurant_profiles")
-        .select("restaurant_name")
+        .select("restaurant_name, pack_dishes_remaining, pack_dishes_total")
         .eq("user_id", user?.id)
         .single();
       
-      if (data) setRestaurantName(data.restaurant_name);
+      if (data) setProfile(data);
     } catch (error) {
-      console.error("Error loading restaurant name:", error);
+      console.error("Error loading profile:", error);
     }
   };
 
@@ -133,7 +139,7 @@ const Dashboard = () => {
         <main className="container mx-auto px-4 py-8">
           {/* Welcome & Summary */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">Welcome back{restaurantName ? `, ${restaurantName}` : ""}!</h1>
+            <h1 className="text-3xl font-bold">Welcome back{profile?.restaurant_name ? `, ${profile.restaurant_name}` : ""}!</h1>
             <p className="text-muted-foreground mt-1">Manage your 3D dish orders</p>
           </div>
 
@@ -175,6 +181,29 @@ const Dashboard = () => {
             </Card>
           </div>
 
+          {/* Pack Quota Widget */}
+          {profile && profile.pack_dishes_remaining > 0 && (
+            <Card className="mb-6 shadow-elegant bg-gradient-to-br from-primary/10 to-background border-primary/20">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Multi-Dish Pack Active
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      You can create {profile.pack_dishes_remaining} more dish{profile.pack_dishes_remaining !== 1 ? 'es' : ''} without additional payment
+                    </CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-primary">{profile.pack_dishes_remaining}</div>
+                    <div className="text-sm text-muted-foreground">of {profile.pack_dishes_total} remaining</div>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
+
           {/* Orders Table Header */}
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex gap-2 flex-wrap">
@@ -189,14 +218,25 @@ const Dashboard = () => {
                 </Button>
               ))}
             </div>
-            <Button 
-              onClick={() => navigate("/app/dishes/new?demo=true")} 
-              className="shadow-elegant bg-gradient-primary"
-              disabled={hasPendingDemoOrder}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Order Demo Dish
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => navigate("/app/dishes/new")} 
+                className="shadow-elegant"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Dish Order
+              </Button>
+              {!hasPendingDemoOrder && !hasAnyDemoDish && (
+                <Button 
+                  onClick={() => navigate("/app/dishes/new?demo=true")} 
+                  variant="outline"
+                  className="border-primary/50"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Try Demo ($99)
+                </Button>
+              )}
+            </div>
           </div>
 
           {hasPendingDemoOrder && (
@@ -216,14 +256,19 @@ const Dashboard = () => {
             <Card className="shadow-elegant">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="w-24 h-24 mx-auto bg-gradient-primary rounded-full opacity-20 animate-pulse mb-6"></div>
-                <h3 className="text-2xl font-bold mb-2">Start with your first paid demo dish</h3>
+                <h3 className="text-2xl font-bold mb-2">Start with your first 3D dish</h3>
                 <p className="text-muted-foreground text-center mb-6 max-w-md">
-                  Order a photorealistic 3D model of your signature dish. Upload 8-20 photos, and our team will create an AR-ready 3D visualization that increases guest confidence before ordering.
+                  Try a single dish for $99 or save with a multi-dish pack. Upload 8-20 photos, and our team will create an AR-ready 3D visualization.
                 </p>
-                <Button onClick={() => navigate("/app/dishes/new?demo=true")} size="lg" className="bg-gradient-primary shadow-glow">
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Order Your Demo Dish ($99)
-                </Button>
+                <div className="flex gap-3">
+                  <Button onClick={() => navigate("/app/dishes/new?demo=true")} size="lg" variant="outline">
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Try Demo ($99)
+                  </Button>
+                  <Button onClick={() => navigate("/#pricing")} size="lg" className="bg-gradient-primary shadow-glow">
+                    View Packs
+                  </Button>
+                </div>
                 <p className="text-xs text-muted-foreground mt-4">Typical delivery: 5-7 business days</p>
               </CardContent>
             </Card>
