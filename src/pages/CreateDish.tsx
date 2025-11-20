@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,17 +8,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Upload, X, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { Upload, X, CheckCircle, ArrowRight, ArrowLeft, Info, Loader2 } from "lucide-react";
+import { PRICING, MIN_PHOTOS, MAX_PHOTOS, PHOTO_UPLOAD_TIPS } from "@/config/pricing";
+import { notifyAdminNewOrder } from "@/services/emailService";
 
 const CreateDish = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
+  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [restaurantProfileId, setRestaurantProfileId] = useState<string | null>(null);
+  const [restaurantData, setRestaurantData] = useState<{ name: string; city?: string; country?: string } | null>(null);
   
   // Step 1 data
   const [dishName, setDishName] = useState("");
@@ -32,6 +40,7 @@ const CreateDish = () => {
 
   // Step 3 data
   const [dishOrderId, setDishOrderId] = useState<string | null>(null);
+  const [internalReference, setInternalReference] = useState<string | null>(null);
 
   useEffect(() => {
     loadRestaurantProfile();
@@ -40,20 +49,25 @@ const CreateDish = () => {
   const loadRestaurantProfile = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from("restaurant_profiles")
-      .select("id")
+      .select("id, restaurant_name, city, country")
       .eq("user_id", user.id)
       .single();
 
     if (error) {
       console.error("Error loading profile:", error);
       toast.error("Please complete your profile first");
-      navigate("/app/onboarding");
+      navigate("/onboarding");
       return;
     }
 
     setRestaurantProfileId(data.id);
+    setRestaurantData({
+      name: data.restaurant_name,
+      city: data.city || undefined,
+      country: data.country || undefined,
+    });
   };
 
   const handleStep1Submit = async () => {
@@ -74,8 +88,9 @@ const CreateDish = () => {
           cuisine_type: cuisineType || null,
           target_use_case: targetUseCase || null,
           status: "NEW",
-          price_charged: 99.00,
-          currency: "USD",
+          is_demo: isDemo,
+          price_charged: PRICING.DEMO_DISH.PRICE,
+          currency: PRICING.DEMO_DISH.CURRENCY,
         })
         .select()
         .single();
@@ -83,8 +98,9 @@ const CreateDish = () => {
       if (error) throw error;
 
       setDishOrderId(data.id);
+      setInternalReference(data.internal_reference);
       setStep(2);
-      toast.success("Dish order created! Now upload your photos.");
+      toast.success("Dish info saved! Now upload your photos.");
     } catch (error: any) {
       console.error("Error creating dish order:", error);
       toast.error("Failed to create dish order");
@@ -101,8 +117,12 @@ const CreateDish = () => {
       toast.error("Only image files are allowed");
     }
 
-    const newPhotos = [...photos, ...validFiles].slice(0, 20);
+    const newPhotos = [...photos, ...validFiles].slice(0, MAX_PHOTOS);
     setPhotos(newPhotos);
+    
+    if (newPhotos.length === MAX_PHOTOS && files.length > MAX_PHOTOS) {
+      toast.info(`Maximum ${MAX_PHOTOS} photos allowed`);
+    }
   };
 
   const removePhoto = (index: number) => {
@@ -110,13 +130,18 @@ const CreateDish = () => {
   };
 
   const handleStep2Submit = async () => {
-    if (photos.length < 8) {
-      toast.error("Please upload at least 8 photos");
+    if (photos.length < MIN_PHOTOS) {
+      toast.error(`Please upload at least ${MIN_PHOTOS} photos`);
       return;
     }
 
-    if (photos.length > 20) {
-      toast.error("Maximum 20 photos allowed");
+    if (photos.length > MAX_PHOTOS) {
+      toast.error(`Maximum ${MAX_PHOTOS} photos allowed`);
+      return;
+    }
+
+    if (!dishOrderId) {
+      toast.error("Order ID missing. Please restart the process.");
       return;
     }
 
@@ -158,32 +183,38 @@ const CreateDish = () => {
   };
 
   const handleConfirmOrder = async () => {
+    if (!dishOrderId) return;
+
     setLoading(true);
     try {
       // Create payment record
       const { error: paymentError } = await supabase
         .from("payment_records")
         .insert({
-          dish_order_id: dishOrderId!,
+          dish_order_id: dishOrderId,
           user_id: user!.id,
-          amount: 99.00,
-          currency: "USD",
-          status: "PAID",
-          provider: "manual_mvp",
+          amount: PRICING.DEMO_DISH.PRICE,
+          currency: PRICING.DEMO_DISH.CURRENCY,
+          status: "PENDING",
+          provider: "manual",
         });
 
       if (paymentError) throw paymentError;
 
-      // Update order status
-      const { error: updateError } = await supabase
-        .from("dish_orders")
-        .update({ status: "IN_PRODUCTION" })
-        .eq("id", dishOrderId!);
+      // Send notification email to admin
+      if (restaurantData && internalReference) {
+        await notifyAdminNewOrder({
+          restaurantName: restaurantData.name,
+          dishName,
+          internalReference,
+          dishOrderId,
+          city: restaurantData.city,
+          country: restaurantData.country,
+        });
+      }
 
-      if (updateError) throw updateError;
-
-      toast.success("Order confirmed! Redirecting...");
-      setTimeout(() => navigate(`/app/dishes/${dishOrderId}`), 1500);
+      toast.success("Your demo dish has been submitted! We'll review your photos and send you the 3D/AR result.");
+      navigate("/app");
     } catch (error: any) {
       console.error("Error confirming order:", error);
       toast.error("Failed to confirm order");

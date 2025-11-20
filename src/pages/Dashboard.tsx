@@ -6,7 +6,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, LogOut, User, Package, Sparkles } from "lucide-react";
+import { Plus, LogOut, User, Package, Sparkles, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DishOrder {
@@ -64,6 +64,9 @@ const Dashboard = () => {
     }
   };
 
+  const hasPendingDemoOrder = dishes.some(
+    d => d.is_demo && (d.status === "NEW" || d.status === "IN_PRODUCTION")
+  );
   const hasAnyDemoDish = dishes.some(d => d.is_demo);
   const hasNoDishes = dishes.length === 0;
 
@@ -186,11 +189,24 @@ const Dashboard = () => {
                 </Button>
               ))}
             </div>
-            <Button onClick={() => navigate("/app/dishes/new?demo=true")} className="shadow-elegant bg-gradient-primary">
+            <Button 
+              onClick={() => navigate("/app/dishes/new?demo=true")} 
+              className="shadow-elegant bg-gradient-primary"
+              disabled={hasPendingDemoOrder}
+            >
               <Sparkles className="h-4 w-4 mr-2" />
               Order Demo Dish
             </Button>
           </div>
+
+          {hasPendingDemoOrder && (
+            <Alert className="mt-4 mb-2">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                You already have a demo dish in progress. Once it's delivered, you'll be able to order another one.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {loading ? (
             <div className="flex justify-center py-12">
