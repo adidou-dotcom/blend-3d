@@ -7,16 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
 
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [restaurantName, setRestaurantName] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
 
   useEffect(() => {
     if (!user) {
@@ -38,6 +42,7 @@ const Onboarding = () => {
         setCity(data.city || "");
         setWebsiteUrl(data.website_url || "");
         setWhatsappNumber(data.whatsapp_number || "");
+        setLogoPreview(data.logo_url || "");
 
         if (data.onboarding_completed) {
           navigate("/app");
@@ -47,6 +52,57 @@ const Onboarding = () => {
 
     loadProfile();
   }, [user, navigate]);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please select an image file");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile || !user) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('restaurant-logos')
+        .upload(filePath, logoFile, {
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('restaurant-logos')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error("Error uploading logo:", error);
+      toast.error("Failed to upload logo");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +115,15 @@ const Onboarding = () => {
     setLoading(true);
 
     try {
+      let logoUrl = logoPreview;
+      
+      if (logoFile) {
+        const uploadedUrl = await uploadLogo();
+        if (uploadedUrl) {
+          logoUrl = uploadedUrl;
+        }
+      }
+
       const { error } = await supabase
         .from("restaurant_profiles")
         .update({
@@ -67,6 +132,7 @@ const Onboarding = () => {
           city,
           website_url: websiteUrl || null,
           whatsapp_number: whatsappNumber || null,
+          logo_url: logoUrl || null,
           onboarding_completed: true,
         })
         .eq("user_id", user.id);
@@ -153,8 +219,36 @@ const Onboarding = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Saving..." : "Complete setup"}
+            <div className="space-y-2">
+              <Label htmlFor="logo">Restaurant Logo (optional)</Label>
+              <div className="flex flex-col gap-4">
+                {logoPreview && (
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-border">
+                    <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="logo"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="hidden"
+                  />
+                  <Label
+                    htmlFor="logo"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {logoPreview ? "Change Logo" : "Upload Logo"}
+                  </Label>
+                  <span className="text-sm text-muted-foreground">Max 5MB</span>
+                </div>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading || uploading}>
+              {loading || uploading ? "Saving..." : "Complete Setup"}
             </Button>
           </form>
         </CardContent>
