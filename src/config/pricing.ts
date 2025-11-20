@@ -5,6 +5,7 @@
 export const PRICING = {
   SINGLE: {
     id: 'pri_01jd8xample1', // TODO: Replace with actual Paddle price ID
+    paddlePriceId: 'pri_01jd8xample1', // TODO: Replace with actual Paddle price ID
     dishes: 1,
     price: 99,
     currency: 'USD',
@@ -15,6 +16,7 @@ export const PRICING = {
   PACKS: [
     {
       id: 'pri_01jd8xample5', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xample5', // TODO: Replace with actual Paddle price ID
       dishes: 5,
       price: 449,
       currency: 'USD',
@@ -24,6 +26,7 @@ export const PRICING = {
     },
     {
       id: 'pri_01jd8xample10', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xample10', // TODO: Replace with actual Paddle price ID
       dishes: 10,
       price: 799,
       currency: 'USD',
@@ -33,6 +36,7 @@ export const PRICING = {
     },
     {
       id: 'pri_01jd8xample15', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xample15', // TODO: Replace with actual Paddle price ID
       dishes: 15,
       price: 1125,
       currency: 'USD',
@@ -42,6 +46,7 @@ export const PRICING = {
     },
     {
       id: 'pri_01jd8xample20', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xample20', // TODO: Replace with actual Paddle price ID
       dishes: 20,
       price: 1399,
       currency: 'USD',
@@ -51,6 +56,7 @@ export const PRICING = {
     },
     {
       id: 'pri_01jd8xample30', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xample30', // TODO: Replace with actual Paddle price ID
       dishes: 30,
       price: 1899,
       currency: 'USD',
@@ -62,6 +68,7 @@ export const PRICING = {
   HOSTING: {
     BASIC: {
       id: 'pri_01jd8xamplebasic', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xamplebasic', // TODO: Replace with actual Paddle price ID
       name: 'Basic Hosting',
       monthly: 29,
       currency: 'USD',
@@ -78,6 +85,7 @@ export const PRICING = {
     },
     PRO: {
       id: 'pri_01jd8xamplepro', // TODO: Replace with actual Paddle price ID
+      paddlePriceId: 'pri_01jd8xamplepro', // TODO: Replace with actual Paddle price ID
       name: 'Pro Hosting',
       monthly: 59,
       currency: 'USD',

@@ -168,6 +168,45 @@ const AdminDishDetail = () => {
 
       toast.success("Order updated successfully!");
 
+      // Handle hosting trial auto-start when marking as DELIVERED
+      if (previousStatus !== "DELIVERED" && status === "DELIVERED") {
+        // Check if restaurant already has a subscription
+        const { data: existingSub, error: subCheckError } = await supabase
+          .from("subscription_records")
+          .select("id, status")
+          .eq("user_id", dish.user_id)
+          .maybeSingle();
+
+        if (subCheckError) {
+          console.error("Error checking subscription:", subCheckError);
+        }
+
+        // If no active subscription, start trial
+        if (!existingSub) {
+          const trialStart = new Date();
+          const trialEnd = new Date(trialStart);
+          trialEnd.setDate(trialEnd.getDate() + 30);
+
+          const { error: subInsertError } = await supabase
+            .from("subscription_records")
+            .insert({
+              user_id: dish.user_id,
+              plan: "BASIC",
+              status: "TRIALING",
+              trial_ends_at: trialEnd.toISOString(),
+              created_at: trialStart.toISOString(),
+            });
+
+          if (subInsertError) {
+            console.error("Error creating trial subscription:", subInsertError);
+            toast.error("Failed to start hosting trial");
+          } else {
+            console.log("Started 30-day hosting trial for user:", dish.user_id);
+            toast.success("30-day hosting trial started!");
+          }
+        }
+      }
+
       // Send email notifications if status changed
       if (dish && previousStatus !== status) {
         // Get user email from user_id
@@ -188,10 +227,26 @@ const AdminDishDetail = () => {
               console.warn("Failed to send READY email:", emailResult.error);
             }
           } else if (status === "DELIVERED") {
+            // Get subscription info for trial details
+            const { data: subData } = await supabase
+              .from("subscription_records")
+              .select("trial_ends_at")
+              .eq("user_id", dish.user_id)
+              .maybeSingle();
+
+            const trialEndsAt = subData?.trial_ends_at 
+              ? new Date(subData.trial_ends_at).toLocaleDateString("en-US", { 
+                  year: "numeric", 
+                  month: "long", 
+                  day: "numeric" 
+                })
+              : null;
+
             // Notify restaurant that order is delivered
             const emailResult = await notifyRestaurantOrderDelivered(userEmail, {
               dishName: dish.dish_name,
               dishOrderId: dish.id,
+              trialEndsAt,
             });
             
             if (emailResult.success) {

@@ -20,11 +20,17 @@ interface SubscriptionRecord {
   created_at: string;
 }
 
+interface RestaurantProfile {
+  pack_dishes_remaining: number | null;
+  pack_dishes_total: number | null;
+}
+
 const Billing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
+  const [profile, setProfile] = useState<RestaurantProfile | null>(null);
   const [startingTrial, setStartingTrial] = useState(false);
 
   useEffect(() => {
@@ -45,6 +51,19 @@ const Billing = () => {
 
       if (error) throw error;
       setSubscription(data);
+
+      // Load restaurant profile for credits
+      const { data: profileData, error: profileError } = await supabase
+        .from("restaurant_profiles")
+        .select("pack_dishes_remaining, pack_dishes_total")
+        .eq("user_id", user?.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error("Error loading profile:", profileError);
+      } else {
+        setProfile(profileData);
+      }
     } catch (error: any) {
       console.error("Error loading subscription:", error);
       toast.error("Failed to load subscription details");
@@ -154,6 +173,122 @@ const Billing = () => {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Dish Credits Section */}
+              <Card className="shadow-elegant">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Dish Credits
+                  </CardTitle>
+                  <CardDescription>Purchase credits to create 3D dish demos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-muted rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Available Credits</p>
+                        <p className="text-3xl font-bold">
+                          {profile?.pack_dishes_remaining || 0}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">Total Purchased</p>
+                        <p className="text-xl font-semibold">
+                          {profile?.pack_dishes_total || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">Single Dish</h4>
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold">Demo Dish</p>
+                          <p className="text-sm text-muted-foreground">1 dish credit</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold">${PRICING.SINGLE.price}</p>
+                          <Button 
+                            size="sm"
+                            onClick={async () => {
+                              if (!user?.email) {
+                                toast.error("Email not found");
+                                return;
+                              }
+                              try {
+                                await openCheckout({
+                                  priceId: PRICING.SINGLE.paddlePriceId,
+                                  customerEmail: user.email,
+                                  successUrl: `${window.location.origin}/app/billing?success=true`,
+                                  quantity: 1,
+                                  customData: {
+                                    userId: user.id,
+                                    dishesCount: 1,
+                                  },
+                                });
+                              } catch (error) {
+                                toast.error("Failed to open checkout");
+                              }
+                            }}
+                          >
+                            Buy Now
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <h4 className="font-semibold mt-6">Credit Packs (Best Value)</h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {PRICING.PACKS.map((pack) => (
+                        <div key={pack.dishes} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-semibold">{pack.dishes} Dishes</p>
+                              <p className="text-sm text-muted-foreground">
+                                ${(pack.price / pack.dishes).toFixed(0)}/dish
+                              </p>
+                            </div>
+                            <Badge variant="secondary">
+                              Save ${(PRICING.SINGLE.price * pack.dishes - pack.price).toFixed(0)}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-xl font-bold">${pack.price}</p>
+                            <Button 
+                              size="sm"
+                              onClick={async () => {
+                                if (!user?.email) {
+                                  toast.error("Email not found");
+                                  return;
+                                }
+                                try {
+                                  await openCheckout({
+                                    priceId: pack.paddlePriceId,
+                                    customerEmail: user.email,
+                                    successUrl: `${window.location.origin}/app/billing?success=true`,
+                                    quantity: 1,
+                                    customData: {
+                                      userId: user.id,
+                                      dishesCount: pack.dishes,
+                                    },
+                                  });
+                                } catch (error) {
+                                  toast.error("Failed to open checkout");
+                                }
+                              }}
+                            >
+                              Buy Pack
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Current Plan */}
               {subscription ? (
                 <Card className="shadow-elegant">

@@ -21,6 +21,7 @@ interface NotificationEmailRequest {
     country?: string;
     demoUrl?: string;
     dashboardUrl?: string;
+    trialEndsAt?: string | null;
   };
 }
 
@@ -80,9 +81,25 @@ const handler = async (req: Request): Promise<Response> => {
 
       case "ORDER_DELIVERED":
         subject = "Your Menublend 3D/AR demo is live!";
+        
+        const trialInfo = data.trialEndsAt 
+          ? `
+            <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; margin: 24px 0; border-radius: 4px;">
+              <h3 style="margin-top: 0; color: #065f46;">🎁 Your 30-day hosting trial has started!</h3>
+              <p style="margin-bottom: 0;">Your trial ends on <strong>${data.trialEndsAt}</strong>. After that, you'll need an active hosting plan to keep your demos online.</p>
+              <p style="margin-top: 12px; margin-bottom: 0;">
+                <a href="${data.dashboardUrl?.replace('/dishes/', '/billing')}" style="color: #10b981; text-decoration: underline;">
+                  View Hosting Plans →
+                </a>
+              </p>
+            </div>
+          `
+          : '';
+        
         html = `
           <h1>Your 3D/AR Demo is Live! 🎉</h1>
           <p>Your demo dish <strong>${data.dishName}</strong> is now live and ready to share!</p>
+          ${trialInfo}
           <h2>Your Public Demo Page:</h2>
           <p>
             <a href="${data.demoUrl}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px; margin: 16px 0;">
