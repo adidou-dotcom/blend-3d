@@ -118,6 +118,8 @@ const AdminDishDetail = () => {
     } finally {
       setLoading(false);
     }
+  };
+
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case "PAID":
@@ -130,7 +132,6 @@ const AdminDishDetail = () => {
         return "bg-gray-500";
     }
   };
-
 
   const handleSave = async () => {
     // Validation: If status is DELIVERED, delivery_url must be present
