@@ -25,6 +25,7 @@ export type Database = {
           dish_name: string
           id: string
           internal_reference: string | null
+          is_demo: boolean
           price_charged: number
           restaurant_profile_id: string
           status: Database["public"]["Enums"]["dish_order_status"]
@@ -42,6 +43,7 @@ export type Database = {
           dish_name: string
           id?: string
           internal_reference?: string | null
+          is_demo?: boolean
           price_charged?: number
           restaurant_profile_id: string
           status?: Database["public"]["Enums"]["dish_order_status"]
@@ -59,6 +61,7 @@ export type Database = {
           dish_name?: string
           id?: string
           internal_reference?: string | null
+          is_demo?: boolean
           price_charged?: number
           restaurant_profile_id?: string
           status?: Database["public"]["Enums"]["dish_order_status"]
