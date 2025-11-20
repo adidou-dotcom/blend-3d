@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminDishes from "./pages/AdminDishes";
 import AdminDishDetail from "./pages/AdminDishDetail";
+import DemoViewer from "./pages/DemoViewer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/dishes" element={<AdminDishes />} />
             <Route path="/admin/dishes/:id" element={<AdminDishDetail />} />
+            <Route path="/demo/dish/:id" element={<DemoViewer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

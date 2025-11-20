@@ -17,7 +17,7 @@ interface DishOrder {
 }
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [dishes, setDishes] = useState<DishOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,6 +107,11 @@ const Dashboard = () => {
                 <Link to="/app/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                   Profile
                 </Link>
+                {isAdmin && (
+                  <Link to="/admin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    Admin Panel
+                  </Link>
+                )}
               </nav>
             </div>
             <Button variant="ghost" size="sm" onClick={signOut}>
