@@ -4,7 +4,7 @@
 
 export const PRICING = {
   SINGLE: {
-    id: "pri_01kaken0hrbdcpeb2yjsw3r87k", // TODO: Replace with actual Paddle price ID
+    id: "pro_01kakd9xj6x3jyktaxxpnwck0x", // TODO: Replace with actual Paddle price ID
     paddlePriceId: "pri_01kaken0hrbdcpeb2yjsw3r87k", // TODO: Replace with actual Paddle price ID
     dishes: 1,
     price: 99,
@@ -15,7 +15,7 @@ export const PRICING = {
   },
   PACKS: [
     {
-      id: "pri_01kakf6bcsxe7rv52r2p6vvw72", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakdbh6y645ds2zkk8857gt8", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakf6bcsxe7rv52r2p6vvw72", // TODO: Replace with actual Paddle price ID
       dishes: 5,
       price: 449,
@@ -25,7 +25,7 @@ export const PRICING = {
       savings: "10% off",
     },
     {
-      id: "pri_01kakf7t621375t2m9ha8hd7gs", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakdcrp8gwzfredjc5bm5gp1", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakf7t621375t2m9ha8hd7gs", // TODO: Replace with actual Paddle price ID
       dishes: 10,
       price: 799,
@@ -35,7 +35,7 @@ export const PRICING = {
       savings: "19% off",
     },
     {
-      id: "pri_01kakf92gext4m3j2pjn0fm9bb", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakdddvmw4w01nbkd93dj7bp", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakf92gext4m3j2pjn0fm9bb", // TODO: Replace with actual Paddle price ID
       dishes: 15,
       price: 1125,
@@ -45,7 +45,7 @@ export const PRICING = {
       savings: "24% off",
     },
     {
-      id: "pri_01kakfaspjnjrk2a7c17cc2ksk", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakde68c02d5ys7xyedvqqcg", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakfaspjnjrk2a7c17cc2ksk", // TODO: Replace with actual Paddle price ID
       dishes: 20,
       price: 1399,
@@ -55,7 +55,7 @@ export const PRICING = {
       savings: "29% off",
     },
     {
-      id: "pri_01kakfbsfpv2dmzstjw80v10zs", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakdexggwek09h0ez9sz3266", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakfbsfpv2dmzstjw80v10zs", // TODO: Replace with actual Paddle price ID
       dishes: 30,
       price: 1899,
@@ -67,7 +67,7 @@ export const PRICING = {
   ],
   HOSTING: {
     BASIC: {
-      id: "pri_01kakmqzrejqrwbxrca3ccfdz5", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakdrwzcmrbqgjyqtm7k0zeq", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakmqzrejqrwbxrca3ccfdz5", // TODO: Replace with actual Paddle price ID
       name: "Basic Hosting",
       monthly: 29,
@@ -84,7 +84,7 @@ export const PRICING = {
       ],
     },
     PRO: {
-      id: "pri_01kakmsehzfyd0sdnyzez35k5j", // TODO: Replace with actual Paddle price ID
+      id: "pro_01kakdt12bvtypq8qpbez295kb", // TODO: Replace with actual Paddle price ID
       paddlePriceId: "pri_01kakmsehzfyd0sdnyzez35k5j", // TODO: Replace with actual Paddle price ID
       name: "Pro Hosting",
       monthly: 59,
